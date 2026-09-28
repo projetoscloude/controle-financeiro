@@ -1,0 +1,656 @@
+<title>Painel da Fatura</title>
+<style>
+/* layout: single scrolling column, card sections stacked with gap, sticky nothing — reads top→bottom like a statement */
+:root{
+  --bg:#f2f3ee;
+  --surface:#ffffff;
+  --surface-2:#e9ebe3;
+  --ink:#14140f;
+  --ink-soft:#55564c;
+  --muted:#8d8f83;
+  --border:rgba(20,20,15,0.12);
+  --accent:#0f6a55;
+  --accent-soft:#d9ece6;
+  --danger:#c8393a;
+  --danger-soft:#f6dede;
+  --good:#0ca30c;
+  --font-display:'Fraunces',Georgia,'Times New Roman',serif;
+  --font-body:'Public Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'IBM Plex Mono',ui-monospace,'SFMono-Regular',Menlo,Consolas,monospace;
+  --g1:#2a78d6; --g2:#eb6834; --g3:#1baf7a; --g4:#eda100; --g5:#e87ba4;
+  --g6:#008300; --g7:#4a3aa7; --g8:#e34948; --g9:#8a5a34;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme: dark;
+    --bg:#141410;
+    --surface:#1c1c17;
+    --surface-2:#242419;
+    --ink:#f5f5ef;
+    --ink-soft:#c7c8bd;
+    --muted:#93948a;
+    --border:rgba(255,255,255,0.12);
+    --accent:#3bb999;
+    --accent-soft:rgba(59,185,153,0.16);
+    --danger:#e37070;
+    --danger-soft:rgba(227,112,112,0.16);
+    --good:#3bc23b;
+    --g1:#3987e5; --g2:#d95926; --g3:#199e70; --g4:#c98500; --g5:#d55181;
+    --g6:#2fae2f; --g7:#9085e9; --g8:#e66767; --g9:#b98a5e;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme: dark;
+  --bg:#141410;
+  --surface:#1c1c17;
+  --surface-2:#242419;
+  --ink:#f5f5ef;
+  --ink-soft:#c7c8bd;
+  --muted:#93948a;
+  --border:rgba(255,255,255,0.12);
+  --accent:#3bb999;
+  --accent-soft:rgba(59,185,153,0.16);
+  --danger:#e37070;
+  --danger-soft:rgba(227,112,112,0.16);
+  --good:#3bc23b;
+  --g1:#3987e5; --g2:#d95926; --g3:#199e70; --g4:#c98500; --g5:#d55181;
+  --g6:#2fae2f; --g7:#9085e9; --g8:#e66767; --g9:#b98a5e;
+}
+*{box-sizing:border-box;}
+body{
+  background:var(--bg);
+  color:var(--ink);
+  font-family:var(--font-body);
+  padding-inline:16px;
+  padding-block:28px;
+}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:22px;}
+
+h1,h2,h3{font-family:var(--font-display);font-weight:600;text-wrap:balance;margin:0;}
+.eyebrow{font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);}
+
+/* header */
+.hero{display:flex;flex-direction:column;gap:14px;}
+.hero-figure{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:16px 20px;min-width:200px;align-self:flex-start;}
+.hero-figure .eyebrow{margin-bottom:6px;}
+.hero-figure .value{font-family:var(--font-mono);font-size:28px;font-weight:600;font-variant-numeric:tabular-nums;}
+.hero-figure .sub{font-size:12px;color:var(--muted);margin-top:2px;}
+.closing-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:12.5px;color:var(--ink-soft);}
+.closing-row label{font-weight:600;}
+.closing-row input{
+  font-family:var(--font-mono);font-variant-numeric:tabular-nums;width:52px;text-align:center;
+  background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:4px 2px;color:var(--ink);
+}
+.closing-row input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.closing-hint{color:var(--muted);}
+
+/* cards */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:16px;padding:18px;}
+.card h2{font-size:16px;margin-bottom:2px;}
+.card .hint{font-size:12px;color:var(--muted);margin:0 0 14px;}
+
+/* form */
+.example-banner{display:flex;justify-content:space-between;align-items:center;gap:10px;background:var(--accent-soft);border:1px solid var(--border);border-radius:12px;padding:10px 14px;font-size:13px;color:var(--ink-soft);flex-wrap:wrap;}
+.example-banner button{flex-shrink:0;}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.field{display:flex;flex-direction:column;gap:5px;min-width:0;}
+.field.span-2{grid-column:1 / -1;}
+.field label{font-size:12px;font-weight:600;color:var(--ink-soft);}
+.field select,.field input{
+  font-family:var(--font-body);font-size:14px;color:var(--ink);
+  background:var(--surface-2);border:1px solid var(--border);border-radius:9px;
+  padding:9px 10px;width:100%;
+}
+.field input[type="text"],.field input[type="number"]{font-family:var(--font-mono);font-variant-numeric:tabular-nums;}
+.field select:focus,.field input:focus{outline:2px solid var(--accent);outline-offset:1px;}
+.form-actions{margin-top:14px;display:flex;justify-content:flex-end;}
+button{font-family:var(--font-body);font-weight:600;font-size:13px;border-radius:9px;border:1px solid transparent;padding:9px 16px;cursor:pointer;}
+button:focus-visible{outline:2px solid var(--accent);outline-offset:2px;}
+.btn-primary{background:var(--accent);color:#fff;}
+.btn-primary:hover{filter:brightness(1.06);}
+.btn-ghost{background:transparent;border-color:var(--border);color:var(--ink-soft);}
+.btn-ghost:hover{background:var(--surface-2);}
+.btn-danger-text{background:transparent;border:none;color:var(--danger);font-size:12px;padding:4px 6px;}
+.error-msg{color:var(--danger);font-size:12px;min-height:16px;margin-top:8px;}
+
+/* month cards */
+.months{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;}
+.month-card{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:14px 12px;text-align:left;cursor:pointer;display:flex;flex-direction:column;gap:6px;min-width:0;}
+.month-card .eyebrow{color:var(--muted);}
+.month-card .m-label{font-size:13px;font-weight:600;color:var(--ink-soft);}
+.month-card .m-value{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:19px;font-weight:600;}
+.month-card .m-count{font-size:11px;color:var(--muted);}
+.month-card[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:var(--accent-soft);}
+
+/* breakdown */
+.legend-row{display:flex;align-items:center;gap:10px;padding:9px 0;cursor:pointer;border:none;background:none;width:100%;text-align:left;font-family:var(--font-body);}
+.legend-row:hover{background:var(--surface-2);border-radius:8px;}
+.dot{width:10px;height:10px;border-radius:3px;flex-shrink:0;}
+.bar-col{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;}
+.bar-top{display:flex;justify-content:space-between;gap:8px;font-size:13px;}
+.bar-top .name{font-weight:600;color:var(--ink);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.bar-top .nums{font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--ink-soft);white-space:nowrap;flex-shrink:0;}
+.bar-track{height:6px;border-radius:4px;background:var(--surface-2);overflow:hidden;}
+.bar-fill{height:100%;border-radius:4px;}
+.chevron{flex-shrink:0;width:14px;height:14px;color:var(--muted);transition:transform .15s ease;}
+.legend-row[aria-expanded="true"] .chevron{transform:rotate(90deg);}
+.subrow{display:flex;align-items:center;gap:10px;padding:6px 0 6px 20px;}
+.subrow .dot{width:7px;height:7px;opacity:.7;}
+.subrow .bar-top .name{font-weight:500;font-size:12.5px;color:var(--ink-soft);}
+.subrow .bar-top .nums{font-size:12px;}
+.subrow .bar-track{height:4px;}
+.empty-note{font-size:13px;color:var(--muted);padding:10px 0;}
+
+/* ledger list */
+.ledger-row{display:grid;grid-template-columns:1fr auto auto;gap:4px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--border);}
+.ledger-row:first-child{border-top:none;}
+.ledger-main{min-width:0;}
+.ledger-cat{font-size:13.5px;font-weight:600;}
+.ledger-cat .tag{font-weight:500;color:var(--muted);}
+.ledger-meta{font-size:11.5px;color:var(--muted);margin-top:1px;}
+.ledger-val{font-family:var(--font-mono);font-variant-numeric:tabular-nums;font-size:13.5px;text-align:right;white-space:nowrap;}
+.ledger-val .per{display:block;font-size:11px;color:var(--muted);font-weight:400;}
+.example-pill{display:inline-block;font-size:10px;font-weight:600;letter-spacing:.03em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);border-radius:5px;padding:1px 5px;margin-left:6px;vertical-align:middle;}
+
+footer{text-align:center;font-size:11px;color:var(--muted);padding-top:4px;}
+
+@media (max-width:520px){
+  .form-grid{grid-template-columns:1fr;}
+  .months{grid-template-columns:1fr;}
+  .hero-figure{min-width:0;width:100%;}
+}
+</style>
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap">
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="hero-figure">
+      <p class="eyebrow" id="heroLabel">Fatura atual</p>
+      <div class="value" id="heroValue">R$ 0,00</div>
+      <p class="sub" id="heroSub">0 lançamentos previstos</p>
+    </div>
+    <div class="closing-row">
+      <label for="closingDayInput">Fatura fecha todo dia</label>
+      <input type="number" id="closingDayInput" min="1" max="31" step="1" value="4">
+      <span class="closing-hint">Compras feitas depois desse dia entram na fatura seguinte.</span>
+    </div>
+  </div>
+
+  <div id="exampleBanner" class="example-banner" hidden>
+    <span>Estes lançamentos são <strong>exemplos</strong> para você ver o painel funcionando. Adicione os seus dados reais quando quiser.</span>
+    <button class="btn-ghost" id="clearExamplesBtn" type="button">Remover exemplos</button>
+  </div>
+
+  <section class="card">
+    <h2>Novo lançamento</h2>
+    <p class="hint">Registre uma despesa da fatura com o grupo, o valor total e o número de parcelas.</p>
+    <form id="entryForm" novalidate>
+      <div class="form-grid">
+        <div class="field">
+          <label for="grupoInput">Grupo</label>
+          <select id="grupoInput"></select>
+        </div>
+        <div class="field">
+          <label for="subgrupoInput">Subgrupo</label>
+          <select id="subgrupoInput"></select>
+        </div>
+        <div class="field">
+          <label for="valorInput">Valor total</label>
+          <input type="text" inputmode="numeric" id="valorInput" placeholder="R$ 0,00" data-cents="0">
+        </div>
+        <div class="field">
+          <label for="parcelasInput">Parcelas</label>
+          <input type="number" id="parcelasInput" min="1" max="48" step="1" value="1">
+        </div>
+        <div class="field span-2">
+          <label for="dataInput">Data da compra</label>
+          <input type="date" id="dataInput">
+        </div>
+      </div>
+      <p class="error-msg" id="formError"></p>
+      <div class="form-actions">
+        <button type="submit" class="btn-primary">Adicionar lançamento</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Próximas 3 faturas</h2>
+    <p class="hint">Total acumulado de parcelas previstas para cada mês, considerando todos os lançamentos.</p>
+    <div class="months" id="monthsWrap"></div>
+  </section>
+
+  <section class="card">
+    <h2 id="breakdownTitle">Detalhamento por grupo</h2>
+    <p class="hint" id="breakdownHint">Percentual que cada grupo representa da fatura selecionada. Toque em um grupo para ver os subgrupos.</p>
+    <div id="breakdownWrap"></div>
+  </section>
+
+  <section class="card">
+    <h2>Lançamentos</h2>
+    <p class="hint">Todos os lançamentos cadastrados, do mais recente ao mais antigo.</p>
+    <div id="ledgerWrap"></div>
+  </section>
+
+  <footer>Os dados ficam salvos apenas neste navegador.</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var STORAGE_KEY = "fatura-lancamentos-v1";
+  var CLOSING_KEY = "fatura-fechamento-dia-v1";
+
+  var CATEGORIES = {
+    "Alimentação": ["Delivery","Mercado","Lanche","Suplemento"],
+    "Moradia": ["Condomínio","Energia","Faxineira"],
+    "Transporte": ["Gasolina","Revisão","Seguro","Uber","Equipamento"],
+    "Cuidados pessoais": ["Corte de cabelo","Depilação"],
+    "Lazer": ["Restaurante","Bar","Festa","Cinema","Outros"],
+    "Viagem": ["Passagem","Alimentação","Passeios","Hospedagem"],
+    "Educação": ["Curso","Livro","Plataformas"],
+    "Saúde": ["Médico","Dentista","Nutricionista","Academia","Tênis"],
+    "Compras": ["Vestuário","Eletrônicos","Farmácia","Casa"]
+  };
+  var GROUP_ORDER = Object.keys(CATEGORIES);
+  var GROUP_COLOR_VAR = {};
+  GROUP_ORDER.forEach(function(g,i){ GROUP_COLOR_VAR[g] = "var(--g" + (i+1) + ")"; });
+
+  var SEED_ENTRIES = [
+    { id:"seed-1", grupo:"Moradia", subgrupo:"Condomínio", valor:450.00, data:"2026-09-05", parcelas:1, example:true },
+    { id:"seed-2", grupo:"Alimentação", subgrupo:"Mercado", valor:68.90, data:"2026-09-25", parcelas:1, example:true },
+    { id:"seed-3", grupo:"Transporte", subgrupo:"Gasolina", valor:180.00, data:"2026-09-20", parcelas:1, example:true },
+    { id:"seed-4", grupo:"Compras", subgrupo:"Eletrônicos", valor:2400.00, data:"2026-08-15", parcelas:6, example:true },
+    { id:"seed-5", grupo:"Saúde", subgrupo:"Academia", valor:99.90, data:"2026-09-10", parcelas:1, example:true },
+    { id:"seed-6", grupo:"Lazer", subgrupo:"Restaurante", valor:145.00, data:"2026-09-22", parcelas:1, example:true },
+    { id:"seed-7", grupo:"Viagem", subgrupo:"Passagem", valor:1800.00, data:"2026-07-10", parcelas:3, example:true },
+    { id:"seed-8", grupo:"Educação", subgrupo:"Curso", valor:600.00, data:"2026-09-01", parcelas:4, example:true }
+  ];
+
+  var state = {
+    entries: [],
+    closingDay: 4,
+    selectedMonth: null,
+    expandedGroups: {}
+  };
+
+  function pad(n){ return String(n).length < 2 ? "0" + n : String(n); }
+
+  function todayISO(){
+    var d = new Date();
+    return d.getFullYear() + "-" + pad(d.getMonth()+1) + "-" + pad(d.getDate());
+  }
+
+  function parseISO(s){
+    var parts = s.split("-").map(Number);
+    return { y: parts[0], m: parts[1]-1, d: parts[2] };
+  }
+
+  function daysInMonth(y,m){
+    return new Date(y, m+1, 0).getDate();
+  }
+
+  function addMonths(iso, n){
+    var p = parseISO(iso);
+    var total = p.y*12 + p.m + n;
+    var ny = Math.floor(total/12);
+    var nm = total - ny*12;
+    var dim = daysInMonth(ny, nm);
+    return { y: ny, m: nm, d: Math.min(p.d, dim) };
+  }
+
+  function monthKeyFromParts(p){ return p.y + "-" + pad(p.m+1); }
+
+  // Charges made after the closing day belong to next month's invoice.
+  function invoiceKeyFromParts(p, closingDay){
+    if(p.d > closingDay){
+      var total = p.y*12 + p.m + 1;
+      var ny = Math.floor(total/12);
+      var nm = total - ny*12;
+      return monthKeyFromParts({ y: ny, m: nm });
+    }
+    return monthKeyFromParts(p);
+  }
+
+  function addMonthsToKey(key, n){
+    var parts = key.split("-").map(Number);
+    var total = parts[0]*12 + (parts[1]-1) + n;
+    var ny = Math.floor(total/12);
+    var nm = total - ny*12;
+    return monthKeyFromParts({ y: ny, m: nm });
+  }
+
+  function monthLabel(key){
+    var parts = key.split("-").map(Number);
+    var dt = new Date(parts[0], parts[1]-1, 1);
+    var label = new Intl.DateTimeFormat("pt-BR", { month: "long", year: "numeric" }).format(dt);
+    return label.charAt(0).toUpperCase() + label.slice(1);
+  }
+
+  function fmtBRL(value){
+    return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+  }
+
+  function fmtDate(iso){
+    var p = parseISO(iso);
+    return pad(p.d) + "/" + pad(p.m+1) + "/" + p.y;
+  }
+
+  function fmtPercent(v){
+    return v.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 }) + "%";
+  }
+
+  // ---- persistence ----
+  function load(){
+    try{
+      var raw = localStorage.getItem(STORAGE_KEY);
+      if(raw){
+        state.entries = JSON.parse(raw);
+      } else {
+        state.entries = SEED_ENTRIES.slice();
+      }
+    }catch(e){
+      state.entries = SEED_ENTRIES.slice();
+    }
+    try{
+      var rawClosing = parseInt(localStorage.getItem(CLOSING_KEY), 10);
+      state.closingDay = (rawClosing >= 1 && rawClosing <= 31) ? rawClosing : 4;
+    }catch(e){
+      state.closingDay = 4;
+    }
+  }
+
+  function save(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state.entries)); }
+    catch(e){ /* storage unavailable — app still works for this session */ }
+  }
+
+  function saveClosingDay(){
+    try{ localStorage.setItem(CLOSING_KEY, String(state.closingDay)); }
+    catch(e){ /* storage unavailable — app still works for this session */ }
+  }
+
+  // ---- installment engine ----
+  function buildMonthMap(entries, closingDay){
+    var map = {};
+    entries.forEach(function(entry){
+      var totalCents = Math.round(entry.valor * 100);
+      var n = entry.parcelas;
+      var base = Math.floor(totalCents / n);
+      var rem = totalCents - base * n;
+      for(var i=0;i<n;i++){
+        var cents = base + (i < rem ? 1 : 0);
+        var value = cents / 100;
+        var key = invoiceKeyFromParts(addMonths(entry.data, i), closingDay);
+        if(!map[key]) map[key] = { total: 0, count: 0, groups: {} };
+        map[key].total += value;
+        map[key].count += 1;
+        if(!map[key].groups[entry.grupo]) map[key].groups[entry.grupo] = { total: 0, subs: {} };
+        map[key].groups[entry.grupo].total += value;
+        map[key].groups[entry.grupo].subs[entry.subgrupo] =
+          (map[key].groups[entry.grupo].subs[entry.subgrupo] || 0) + value;
+      }
+    });
+    return map;
+  }
+
+  // ---- rendering ----
+  function populateGrupoSelect(){
+    var grupoSel = document.getElementById("grupoInput");
+    grupoSel.innerHTML = GROUP_ORDER.map(function(g){ return '<option value="'+g+'">'+g+'</option>'; }).join("");
+    populateSubgrupoSelect();
+  }
+
+  function populateSubgrupoSelect(){
+    var grupo = document.getElementById("grupoInput").value;
+    var subSel = document.getElementById("subgrupoInput");
+    var subs = CATEGORIES[grupo] || [];
+    subSel.innerHTML = subs.map(function(s){ return '<option value="'+s+'">'+s+'</option>'; }).join("");
+  }
+
+  function renderHero(monthMap, currentKey){
+    var data = monthMap[currentKey];
+    var total = data ? data.total : 0;
+    var count = data ? data.count : 0;
+    document.getElementById("heroValue").textContent = fmtBRL(total);
+    document.getElementById("heroSub").textContent =
+      count === 0 ? "Nenhum lançamento previsto" :
+      count === 1 ? "1 lançamento previsto" : count + " lançamentos previstos";
+  }
+
+  function renderMonths(monthMap, currentInvoiceKey){
+    var wrap = document.getElementById("monthsWrap");
+    wrap.innerHTML = "";
+    for(var i=0;i<3;i++){
+      var key = addMonthsToKey(currentInvoiceKey, i);
+      var data = monthMap[key];
+      var total = data ? data.total : 0;
+      var parcelCount = data ? data.count : 0;
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "month-card";
+      btn.setAttribute("aria-pressed", String(key === state.selectedMonth));
+      btn.innerHTML =
+        '<span class="eyebrow">' + (i === 0 ? "Fatura atual" : i === 1 ? "Próxima" : "Em seguida") + '</span>' +
+        '<span class="m-label">' + monthLabel(key) + '</span>' +
+        '<span class="m-value">' + fmtBRL(total) + '</span>' +
+        '<span class="m-count">' + parcelCount + (parcelCount === 1 ? " parcela" : " parcelas") + '</span>';
+      btn.addEventListener("click", function(k){
+        return function(){
+          state.selectedMonth = k;
+          state.expandedGroups = {};
+          renderAll();
+        };
+      }(key));
+      wrap.appendChild(btn);
+    }
+  }
+
+  function renderBreakdown(monthMap){
+    var key = state.selectedMonth;
+    var title = document.getElementById("breakdownTitle");
+    title.textContent = "Detalhamento — " + monthLabel(key);
+    var wrap = document.getElementById("breakdownWrap");
+    wrap.innerHTML = "";
+    var data = monthMap[key];
+    if(!data || data.total <= 0){
+      var p = document.createElement("p");
+      p.className = "empty-note";
+      p.textContent = "Nenhum lançamento previsto para " + monthLabel(key) + ".";
+      wrap.appendChild(p);
+      return;
+    }
+    var total = data.total;
+    var groups = Object.keys(data.groups).map(function(g){
+      return { name: g, total: data.groups[g].total, subs: data.groups[g].subs };
+    }).sort(function(a,b){ return b.total - a.total; });
+
+    groups.forEach(function(group){
+      var color = GROUP_COLOR_VAR[group.name] || "var(--muted)";
+      var pct = (group.total / total) * 100;
+      var expanded = !!state.expandedGroups[group.name];
+
+      var row = document.createElement("button");
+      row.type = "button";
+      row.className = "legend-row";
+      row.setAttribute("aria-expanded", String(expanded));
+      row.innerHTML =
+        '<span class="dot" style="background:' + color + '"></span>' +
+        '<span class="bar-col">' +
+          '<span class="bar-top"><span class="name">' + group.name + '</span>' +
+          '<span class="nums">' + fmtBRL(group.total) + ' · ' + fmtPercent(pct) + '</span></span>' +
+          '<span class="bar-track"><span class="bar-fill" style="width:' + pct + '%;background:' + color + '"></span></span>' +
+        '</span>' +
+        '<svg class="chevron" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 3l5 5-5 5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      row.addEventListener("click", function(name){
+        return function(){
+          state.expandedGroups[name] = !state.expandedGroups[name];
+          renderAll();
+        };
+      }(group.name));
+      wrap.appendChild(row);
+
+      if(expanded){
+        var subNames = Object.keys(group.subs).sort(function(a,b){ return group.subs[b] - group.subs[a]; });
+        subNames.forEach(function(sub){
+          var subTotal = group.subs[sub];
+          var subPct = (subTotal / total) * 100;
+          var subRow = document.createElement("div");
+          subRow.className = "subrow";
+          subRow.innerHTML =
+            '<span class="dot" style="background:' + color + '"></span>' +
+            '<span class="bar-col">' +
+              '<span class="bar-top"><span class="name">' + sub + '</span>' +
+              '<span class="nums">' + fmtBRL(subTotal) + ' · ' + fmtPercent(subPct) + '</span></span>' +
+              '<span class="bar-track"><span class="bar-fill" style="width:' + subPct + '%;background:' + color + '"></span></span>' +
+            '</span>';
+          wrap.appendChild(subRow);
+        });
+      }
+    });
+  }
+
+  function renderLedger(){
+    var wrap = document.getElementById("ledgerWrap");
+    wrap.innerHTML = "";
+    var sorted = state.entries.slice().sort(function(a,b){ return b.data.localeCompare(a.data); });
+    if(sorted.length === 0){
+      wrap.innerHTML = '<p class="empty-note">Nenhum lançamento cadastrado ainda.</p>';
+      return;
+    }
+    sorted.forEach(function(entry){
+      var color = GROUP_COLOR_VAR[entry.grupo] || "var(--muted)";
+      var row = document.createElement("div");
+      row.className = "ledger-row";
+      var parcelText = entry.parcelas === 1 ? "à vista" : entry.parcelas + "x de " + fmtBRL(entry.valor / entry.parcelas);
+      row.innerHTML =
+        '<div class="ledger-main">' +
+          '<div class="ledger-cat"><span class="dot" style="display:inline-block;background:' + color + ';width:8px;height:8px;border-radius:2px;margin-right:6px;"></span>' +
+            entry.grupo + ' <span class="tag">· ' + entry.subgrupo + '</span>' +
+            (entry.example ? '<span class="example-pill">Exemplo</span>' : '') +
+          '</div>' +
+          '<div class="ledger-meta">' + fmtDate(entry.data) + ' · ' + parcelText + '</div>' +
+        '</div>' +
+        '<div class="ledger-val">' + fmtBRL(entry.valor) + '</div>' +
+        '<button type="button" class="btn-danger-text" data-id="' + entry.id + '">Excluir</button>';
+      row.querySelector(".btn-danger-text").addEventListener("click", function(){
+        state.entries = state.entries.filter(function(e){ return e.id !== entry.id; });
+        save();
+        renderAll();
+      });
+      wrap.appendChild(row);
+    });
+  }
+
+  function renderExampleBanner(){
+    var hasExamples = state.entries.some(function(e){ return e.example; });
+    var banner = document.getElementById("exampleBanner");
+    banner.hidden = !hasExamples;
+  }
+
+  function renderAll(){
+    var monthMap = buildMonthMap(state.entries, state.closingDay);
+    var currentInvoiceKey = invoiceKeyFromParts(parseISO(todayISO()), state.closingDay);
+    if(!state.selectedMonth){
+      state.selectedMonth = currentInvoiceKey;
+    }
+    renderHero(monthMap, currentInvoiceKey);
+    renderMonths(monthMap, currentInvoiceKey);
+    renderBreakdown(monthMap);
+    renderLedger();
+    renderExampleBanner();
+  }
+
+  // ---- form handling ----
+  function setupForm(){
+    var grupoSel = document.getElementById("grupoInput");
+    var subSel = document.getElementById("subgrupoInput");
+    var valorInput = document.getElementById("valorInput");
+    var parcelasInput = document.getElementById("parcelasInput");
+    var dataInput = document.getElementById("dataInput");
+    var form = document.getElementById("entryForm");
+    var errorMsg = document.getElementById("formError");
+
+    dataInput.value = todayISO();
+    grupoSel.addEventListener("change", populateSubgrupoSelect);
+
+    valorInput.addEventListener("input", function(){
+      var digits = valorInput.value.replace(/\D/g, "");
+      var cents = digits ? parseInt(digits, 10) : 0;
+      valorInput.dataset.cents = String(cents);
+      valorInput.value = cents === 0 ? "" : fmtBRL(cents / 100);
+    });
+
+    form.addEventListener("submit", function(e){
+      e.preventDefault();
+      var cents = parseInt(valorInput.dataset.cents || "0", 10);
+      var parcelas = parseInt(parcelasInput.value, 10);
+      var data = dataInput.value;
+
+      if(cents <= 0){
+        errorMsg.textContent = "Informe um valor maior que zero.";
+        valorInput.focus();
+        return;
+      }
+      if(!parcelas || parcelas < 1){
+        errorMsg.textContent = "O número de parcelas deve ser pelo menos 1.";
+        parcelasInput.focus();
+        return;
+      }
+      if(!data){
+        errorMsg.textContent = "Informe a data da compra.";
+        dataInput.focus();
+        return;
+      }
+      errorMsg.textContent = "";
+
+      state.entries.push({
+        id: "e-" + Date.now() + "-" + Math.random().toString(36).slice(2,7),
+        grupo: grupoSel.value,
+        subgrupo: subSel.value,
+        valor: cents / 100,
+        data: data,
+        parcelas: parcelas
+      });
+      save();
+
+      valorInput.value = "";
+      valorInput.dataset.cents = "0";
+      parcelasInput.value = "1";
+      dataInput.value = todayISO();
+
+      renderAll();
+    });
+
+    document.getElementById("clearExamplesBtn").addEventListener("click", function(){
+      state.entries = state.entries.filter(function(e){ return !e.example; });
+      save();
+      renderAll();
+    });
+  }
+
+  function setupClosingDay(){
+    var input = document.getElementById("closingDayInput");
+    input.value = state.closingDay;
+    input.addEventListener("change", function(){
+      var val = parseInt(input.value, 10);
+      if(!val || val < 1) val = 1;
+      if(val > 31) val = 31;
+      state.closingDay = val;
+      input.value = val;
+      saveClosingDay();
+      state.expandedGroups = {};
+      renderAll();
+    });
+  }
+
+  populateGrupoSelect();
+  load();
+  setupForm();
+  setupClosingDay();
+  renderAll();
+})();
+</script>
